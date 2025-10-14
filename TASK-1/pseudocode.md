@@ -1,94 +1,85 @@
 BASLA
 
-  // Başlangıç değişkenleri (gerçekte veritabanından/hesaptan alınır)
-  hesapPIN <- "1234"                // örnek; gerçek sistemde güvenli saklanır
-  hesapBakiyesi <- 2500             // örnek bakiye (TL)
-  gunlukLimit <- 1000               // hesap için günlük çekim limiti (TL)
-  gunlukKullanilan <- 0             // o gün çekilen toplam tutar
-  MAX_PIN_HAK <- 3
-
-  // PIN doğrulama
+  // --- Başlangıç değişkenleri ---
   pinHak <- 0
+  MAX_PIN_HAK <- 3
   pinDogru <- YANLIS
+  hesapBakiyesi <- 2500
+  gunlukLimit <- 1000
+  gunlukKullanilan <- 0
 
-  DONGU (pinHak < MAX_PIN_HAK VE pinDogru = YANLIS)
-    YAZ "Lütfen PIN kodunuzu giriniz:"
-    OKU girilenPIN
-    pinHak <- pinHak + 1
+  // --- PIN DOĞRULAMA ---
+  DONGU (pinDogru = YANLIS VE pinHak < MAX_PIN_HAK)
+      YAZ "Lütfen PIN kodunuzu giriniz:"
+      OKU girilenPIN
 
-    EGER-ISE girilenPIN = hesapPIN
-      pinDogru <- DOGRU
-      YAZ "PIN doğrulandı."
-    DEĞİLSE
-      kalanHak <- MAX_PIN_HAK - pinHak
-      EGER-ISE kalanHak > 0
-        YAZ "Yanlış PIN. Kalan hak: " + kalanHak
+      EGER-ISE girilenPIN = hesapPIN
+          pinDogru <- DOGRU
       DEĞİLSE
-        YAZ "3 başarısız denemeden sonra kart bloke edildi. İşlem sonlandırılıyor."
-        YAZ "Kart iade ediliyor."
-        BITIR
+          pinHak <- pinHak + 1
+          EGER-ISE pinHak >= MAX_PIN_HAK
+              YAZ "Kart bloke edildi."
+              YAZ "Kart yutuldu."
+              YAZ "Kartı geri almak için şubeye gidiniz."
+              BITIR
+          EGER-ISE SONU
       EGER-ISE SONU
-    EGER-ISE SONU
-
   DONGU SONU
 
-  // Ana işlem döngüsü - işlem tekrarı seçeneği
+
+  // --- ANA İŞLEM DÖNGÜSÜ ---
   islemDevam <- DOGRU
 
   DONGU (islemDevam = DOGRU)
-    YAZ "Mevcut bakiye: " + hesapBakiyesi + " TL"
-    YAZ "Günlük kalan limit: " + (gunlukLimit - gunlukKullanilan) + " TL"
 
-    YAZ "Çekmek istediğiniz tutarı giriniz (20 TL katları):"
-    OKU tutar
-
-    // Tutar geçerlilik kontrolü
-    EGER-ISE tutar <= 0
-      YAZ "Geçersiz tutar. Lütfen pozitif bir tutar giriniz."
-      DONGU (devam)   // yeniden sor
-    EGER-ISE SONU
-
-    EGER-ISE (tutar MOD 20) <> 0
-      YAZ "Tutar 20 TL katları halinde olmalıdır. Lütfen 20, 40, 60 ... gibi bir tutar giriniz."
-      DONGU (devam)   // yeniden sor
-    EGER-ISE SONU
-
-    // Günlük limit kontrolü
-    EGER-ISE tutar > (gunlukLimit - gunlukKullanilan)
-      YAZ "İşlem reddedildi: Günlük limit aşılıyor."
+      YAZ "Bakiye: " + hesapBakiyesi + " TL"
       YAZ "Günlük kalan limit: " + (gunlukLimit - gunlukKullanilan) + " TL"
-      DONGU (devam)
-    EGER-ISE SONU
 
-    // Bakiye kontrolü
-    EGER-ISE tutar > hesapBakiyesi
-      YAZ "İşlem reddedildi: Hesabınızda yeterli bakiye yok."
-      DONGU (devam)
-    EGER-ISE SONU
+      YAZ "Çekmek istediğiniz tutarı giriniz:"
+      OKU tutar
 
-    // Onay adımı
-    YAZ tutar + " TL çekmek istediğinize emin misiniz? (E/H)"
-    OKU onay
-    EGER-ISE onay = "E" VEYA onay = "e"
-      // Para verme ve bakiye güncelleme
-      hesapBakiyesi <- hesapBakiyesi - tutar
-      gunlukKullanilan <- gunlukKullanilan + tutar
-      YAZ "Lütfen paranızı alınız: " + tutar + " TL"
-      YAZ "İşlem başarılı. Yeni bakiye: " + hesapBakiyesi + " TL"
-    DEĞİLSE
-      YAZ "İşlem iptal edildi."
-    EGER-ISE SONU
+      // --- TUTAR KONTROLÜ ---
+      EGER-ISE (tutar MOD 20) <> 0
+          YAZ "Tutar 20 TL katları olmalıdır."
+          DEVAM ET  // tekrar başa dön
+      EGER-ISE SONU
 
-    // İşlem tekrarı seçeneği
-    YAZ "Başka işlem yapmak istiyor musunuz? (E/H)"
-    OKU cevap
-    EGER-ISE cevap = "E" VEYA cevap = "e"
-      islemDevam <- DOGRU
-    DEĞİLSE
-      islemDevam <- YANLIS
-      YAZ "Kartınızı alınız. İyi günler."
-    EGER-ISE SONU
+      // --- GÜNLÜK LİMİT KONTROLÜ ---
+      EGER-ISE (tutar > (gunlukLimit - gunlukKullanilan))
+          YAZ "Günlük limit aşılıyor."
+          DEVAM ET
+      EGER-ISE SONU
+
+      // --- BAKİYE KONTROLÜ ---
+      EGER-ISE (tutar > hesapBakiyesi)
+          YAZ "Yetersiz bakiye."
+          DEVAM ET
+      EGER-ISE SONU
+
+      // --- ONAY ADIMI ---
+      YAZ "İşlemi onaylıyor musunuz? (E/H)"
+      OKU onay
+
+      EGER-ISE (onay = "E" VEYA onay = "e")
+          hesapBakiyesi <- hesapBakiyesi - tutar
+          gunlukKullanilan <- gunlukKullanilan + tutar
+          YAZ "Lütfen paranızı alınız."
+          YAZ "Yeni bakiye: " + hesapBakiyesi + " TL"
+      DEĞİLSE
+          YAZ "İşlem iptal edildi."
+      EGER-ISE SONU
+
+      // --- TEKRAR İŞLEM SEÇENEĞİ ---
+      YAZ "Başka işlem yapmak istiyor musunuz? (E/H)"
+      OKU cevap
+
+      EGER-ISE (cevap = "E" VEYA cevap = "e")
+          islemDevam <- DOGRU
+      DEĞİLSE
+          islemDevam <- YANLIS
+      EGER-ISE SONU
 
   DONGU SONU
 
+YAZ "Kartınızı alınız. İyi günler."
 BITIR
