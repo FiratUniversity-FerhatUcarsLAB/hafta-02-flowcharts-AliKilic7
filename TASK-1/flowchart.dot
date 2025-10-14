@@ -1,94 +1,57 @@
-BASLA
+digraph ATM_Withdraw_Fixed {
+    rankdir=TB;
+    node [fontname="Arial", fontsize=10, style=filled, fillcolor=white];
 
-  // Başlangıç değişkenleri (gerçekte veritabanından/hesaptan alınır)
-  hesapPIN <- "1234"                // örnek; gerçek sistemde güvenli saklanır
-  hesapBakiyesi <- 2500             // örnek bakiye (TL)
-  gunlukLimit <- 1000               // hesap için günlük çekim limiti (TL)
-  gunlukKullanilan <- 0             // o gün çekilen toplam tutar
-  MAX_PIN_HAK <- 3
+    // Nodes
+    start [shape=oval, label="BASLA"];
+    init_vars [shape=box, label="init:\npinHak <- 0\nMAX_PIN_HAK <- 3\npinDogru <- false\"\nhesapBakiyesi <- 2500\ngunlukLimit <- 1000\ngunlukKullanilan <- 0"];
+    pin_input [shape=parallelogram, label="PIN gir"];
+    pin_check [shape=diamond, label="PIN doğru mu?"];
+    pin_increment [shape=box, label="pinHak <- pinHak + 1"];
+    pin_try [shape=diamond, label="pinHak >= MAX_PIN_HAK?"];
+    card_block [shape=parallelogram, label="Kart bloke edildi\nKart yutuldu\nKartı geri almak için şubeye gidiniz"];
+    balance_display [shape=parallelogram, label="Bakiye ve limit goster"];
+    amount_input [shape=parallelogram, label="Cekilecek tutari gir"];
+    valid_amount [shape=diamond, label="Tutar 20 TL kati mi?"];
+    valid_limit [shape=diamond, label="Gunluk limit asilir mi?"];
+    valid_balance [shape=diamond, label="Yeterli bakiye var mi?"];
+    confirm [shape=parallelogram, label="Onayla (E/H)"];
+    approved [shape=diamond, label="Onay = E mi?"];
+    withdraw [shape=box, label="Bakiye ve limit guncelle\nPara ver"];
+    show_new_balance [shape=parallelogram, label="Yeni bakiye goster"];
+    retry [shape=parallelogram, label="Baska islem? (E/H)"];
+    retry_check [shape=diamond, label="Cevap = E mi?"];
+    end [shape=oval, label="BITIR"];
 
-  // PIN doğrulama
-  pinHak <- 0
-  pinDogru <- YANLIS
+    // Flow
+    start -> init_vars;
+    init_vars -> pin_input;
 
-  DONGU (pinHak < MAX_PIN_HAK VE pinDogru = YANLIS)
-    YAZ "Lütfen PIN kodunuzu giriniz:"
-    OKU girilenPIN
-    pinHak <- pinHak + 1
+    pin_input -> pin_check;
+    pin_check -> balance_display [label="Evet"];
+    pin_check -> pin_increment [label="Hayir"];
 
-    EGER-ISE girilenPIN = hesapPIN
-      pinDogru <- DOGRU
-      YAZ "PIN doğrulandı."
-    DEĞİLSE
-      kalanHak <- MAX_PIN_HAK - pinHak
-      EGER-ISE kalanHak > 0
-        YAZ "Yanlış PIN. Kalan hak: " + kalanHak
-      DEĞİLSE
-        YAZ "3 başarısız denemeden sonra kart bloke edildi. İşlem sonlandırılıyor."
-        YAZ "Kart iade ediliyor."
-        BITIR
-      EGER-ISE SONU
-    EGER-ISE SONU
+    // Increment then check attempts
+    pin_increment -> pin_try;
+    pin_try -> card_block [label="Evet"];
+    pin_try -> pin_input [label="Hayir"];
+    card_block -> end;
 
-  DONGU SONU
-
-  // Ana işlem döngüsü - işlem tekrarı seçeneği
-  islemDevam <- DOGRU
-
-  DONGU (islemDevam = DOGRU)
-    YAZ "Mevcut bakiye: " + hesapBakiyesi + " TL"
-    YAZ "Günlük kalan limit: " + (gunlukLimit - gunlukKullanilan) + " TL"
-
-    YAZ "Çekmek istediğiniz tutarı giriniz (20 TL katları):"
-    OKU tutar
-
-    // Tutar geçerlilik kontrolü
-    EGER-ISE tutar <= 0
-      YAZ "Geçersiz tutar. Lütfen pozitif bir tutar giriniz."
-      DONGU (devam)   // yeniden sor
-    EGER-ISE SONU
-
-    EGER-ISE (tutar MOD 20) <> 0
-      YAZ "Tutar 20 TL katları halinde olmalıdır. Lütfen 20, 40, 60 ... gibi bir tutar giriniz."
-      DONGU (devam)   // yeniden sor
-    EGER-ISE SONU
-
-    // Günlük limit kontrolü
-    EGER-ISE tutar > (gunlukLimit - gunlukKullanilan)
-      YAZ "İşlem reddedildi: Günlük limit aşılıyor."
-      YAZ "Günlük kalan limit: " + (gunlukLimit - gunlukKullanilan) + " TL"
-      DONGU (devam)
-    EGER-ISE SONU
-
-    // Bakiye kontrolü
-    EGER-ISE tutar > hesapBakiyesi
-      YAZ "İşlem reddedildi: Hesabınızda yeterli bakiye yok."
-      DONGU (devam)
-    EGER-ISE SONU
-
-    // Onay adımı
-    YAZ tutar + " TL çekmek istediğinize emin misiniz? (E/H)"
-    OKU onay
-    EGER-ISE onay = "E" VEYA onay = "e"
-      // Para verme ve bakiye güncelleme
-      hesapBakiyesi <- hesapBakiyesi - tutar
-      gunlukKullanilan <- gunlukKullanilan + tutar
-      YAZ "Lütfen paranızı alınız: " + tutar + " TL"
-      YAZ "İşlem başarılı. Yeni bakiye: " + hesapBakiyesi + " TL"
-    DEĞİLSE
-      YAZ "İşlem iptal edildi."
-    EGER-ISE SONU
-
-    // İşlem tekrarı seçeneği
-    YAZ "Başka işlem yapmak istiyor musunuz? (E/H)"
-    OKU cevap
-    EGER-ISE cevap = "E" VEYA cevap = "e"
-      islemDevam <- DOGRU
-    DEĞİLSE
-      islemDevam <- YANLIS
-      YAZ "Kartınızı alınız. İyi günler."
-    EGER-ISE SONU
-
-  DONGU SONU
-
-BITIR
+    // Main loop
+    balance_display -> amount_input;
+    amount_input -> valid_amount;
+    valid_amount -> valid_limit [label="Evet"];
+    valid_amount -> amount_input [label="Hayir"];
+    valid_limit -> valid_balance [label="Hayir"];
+    valid_limit -> amount_input [label="Evet"];
+    valid_balance -> confirm [label="Evet"];
+    valid_balance -> amount_input [label="Hayir"];
+    confirm -> approved;
+    approved -> withdraw [label="Evet"];
+    approved -> retry [label="Hayir"];
+    withdraw -> show_new_balance;
+    show_new_balance -> retry;
+    retry -> retry_check;
+    retry_check -> amount_input [label="Evet"];
+    retry_check -> end [label="Hayir"];
+}
