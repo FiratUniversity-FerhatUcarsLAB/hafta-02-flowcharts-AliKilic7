@@ -1,5 +1,5 @@
-İsim-Soyisim Selahattin 
-
+İsim - Soy isim Selahattin Ali Kılıç
+Öğrenci NO: 250541036
 sistemin kısa açıklaması (maks. 5-6 satır)
 
 Bu algoritmada, kullanıcı e-ticaret sistemine giriş yaparak alışveriş sürecine başlar. Giriş geçersizse kullanıcıya kayıt olma zorunluluğu bildirilir ve yeniden giriş yapılır.
