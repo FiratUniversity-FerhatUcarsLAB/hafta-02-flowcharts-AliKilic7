@@ -1,0 +1,67 @@
+digraph E_Ticaret_Sistemi {
+    rankdir=TB;
+    fontname="Arial";
+    node [fontname="Arial", fontsize=11];
+
+    // --- Düğüm tanımları ---
+    basla [shape=oval, label="BAŞLA"];
+    giris [shape=parallelogram, label="Kullanıcı girişi"];
+    kontrol_giris [shape=diamond, label="Kullanıcı geçerli mi?"];
+    kayıt_ol [shape=box, label="Siteye kayıt olmadan giremezsiniz"]
+    sepet_olustur [shape=box, label="Boş sepet oluştur"];
+    urun_sec [shape=parallelogram, label="Ürün seç"];
+    adet_gir [shape=parallelogram, label="Adet gir"];
+    stok_kontrol [shape=diamond, label="Stok yeterli mi?"];
+    sepete_ekle [shape=box, label="Ürünü sepete ekle"];
+    stok_yetersiz [shape=box, label="Stok yetersiz!"];
+    urun_tekrar [shape=diamond, label="Başka ürün eklemek ister misiniz?"];
+    indirim_kodu [shape=parallelogram, label="İndirim kodu gir"];
+    indirim_kontrol [shape=diamond, label="İndirim kodu geçerli mi?"];
+    indirim_uygula [shape=box, label="İndirimi uygula"];
+    indirim_gecersiz [shape=box, label="Geçersiz indirim kodu"];
+    
+    kargo_hesap [shape=box, label="Kargo ücretini hesapla"];
+    toplam_hesap [shape=box, label="Genel toplam = sepet tutarı - indirim + kargo"];
+    odeme_islemi [shape=box, label="Ödeme işlemini başlat"];
+    odeme_kontrol [shape=diamond, label="Ödeme başarılı mı?"];
+    siparis_olustur [shape=box, label="Siparişi oluştur ve stoku güncelle"];
+    odeme_basarisiz [shape=box, label="Ödeme başarısız! Tekrar dene"];
+    bitir [shape=oval, label="BİTİR"];
+
+    // --- Akış bağlantıları ---
+    basla -> giris;
+    giris -> kontrol_giris;
+
+    kontrol_giris -> sepet_olustur [label="EVET"];
+    kontrol_giris -> kayıt_ol [label="HAYIR"];
+    kayıt_ol -> giris
+    sepet_olustur -> urun_sec;
+    urun_sec -> adet_gir;
+    adet_gir -> stok_kontrol;
+
+    stok_kontrol -> sepete_ekle [label="EVET"];
+    stok_kontrol -> stok_yetersiz [label="HAYIR"];
+
+    sepete_ekle -> urun_tekrar;
+    stok_yetersiz -> urun_tekrar;
+
+    urun_tekrar -> urun_sec [label="EVET"];
+    urun_tekrar -> indirim_kodu [label="HAYIR"];
+
+    indirim_kodu -> indirim_kontrol;
+    indirim_kontrol -> indirim_uygula [label="EVET"];
+    indirim_kontrol -> indirim_gecersiz [label="HAYIR"];
+
+    indirim_uygula -> kargo_hesap;
+    indirim_gecersiz -> kargo_hesap;
+
+    kargo_hesap -> toplam_hesap;
+    toplam_hesap -> odeme_islemi;
+    odeme_islemi -> odeme_kontrol;
+
+    odeme_kontrol -> siparis_olustur [label="EVET"];
+    odeme_kontrol -> odeme_basarisiz [label="HAYIR"];
+
+    siparis_olustur -> bitir;
+    odeme_basarisiz -> bitir;
+}
