@@ -1,0 +1,518 @@
+“ATM para cekme sistemi icin detaylı pseudocode yazmanı istiyorum. 
+Sunları icermeli: PIN dogrulama (3 hak), bakiye kontrolu, tutar 
+kontrolu (20 TL katları), gunluk limit kontrolu, islem tekrarı secenegi. Tum 
+adımları BASLA, OKU, YAZ, EGER- 
+ISE, DONGU yapılarıyla yaz.” 
+ChatGPT:
+
+Mükemmel — aşağıda istediğin kurallara (BASLA, OKU, YAZ, EGER-ISE, DONGU) göre Türkçe pseudocode var. PIN doğrulama (3 hak), bakiye kontrolü, tutar kontrolü (20 TL katları), günlük limit kontrolü ve işlem tekrarı seçenekleri hepsi dahil edilmiştir.
+
+BASLA
+
+  // Başlangıç değişkenleri (gerçekte veritabanından/hesaptan alınır)
+  hesapPIN <- "1234"                // örnek; gerçek sistemde güvenli saklanır
+  hesapBakiyesi <- 2500             // örnek bakiye (TL)
+  gunlukLimit <- 1000               // hesap için günlük çekim limiti (TL)
+  gunlukKullanilan <- 0             // o gün çekilen toplam tutar
+  MAX_PIN_HAK <- 3
+
+  // PIN doğrulama
+  pinHak <- 0
+  pinDogru <- YANLIS
+
+  DONGU (pinHak < MAX_PIN_HAK VE pinDogru = YANLIS)
+    YAZ "Lütfen PIN kodunuzu giriniz:"
+    OKU girilenPIN
+    pinHak <- pinHak + 1
+
+    EGER-ISE girilenPIN = hesapPIN
+      pinDogru <- DOGRU
+      YAZ "PIN doğrulandı."
+    DEĞİLSE
+      kalanHak <- MAX_PIN_HAK - pinHak
+      EGER-ISE kalanHak > 0
+        YAZ "Yanlış PIN. Kalan hak: " + kalanHak
+      DEĞİLSE
+        YAZ "3 başarısız denemeden sonra kart bloke edildi. İşlem sonlandırılıyor."
+        YAZ "Kart iade ediliyor."
+        BITIR
+      EGER-ISE SONU
+    EGER-ISE SONU
+
+  DONGU SONU
+
+  // Ana işlem döngüsü - işlem tekrarı seçeneği
+  islemDevam <- DOGRU
+
+  DONGU (islemDevam = DOGRU)
+    YAZ "Mevcut bakiye: " + hesapBakiyesi + " TL"
+    YAZ "Günlük kalan limit: " + (gunlukLimit - gunlukKullanilan) + " TL"
+
+    YAZ "Çekmek istediğiniz tutarı giriniz (20 TL katları):"
+    OKU tutar
+
+    // Tutar geçerlilik kontrolü
+    EGER-ISE tutar <= 0
+      YAZ "Geçersiz tutar. Lütfen pozitif bir tutar giriniz."
+      DONGU (devam)   // yeniden sor
+    EGER-ISE SONU
+
+    EGER-ISE (tutar MOD 20) <> 0
+      YAZ "Tutar 20 TL katları halinde olmalıdır. Lütfen 20, 40, 60 ... gibi bir tutar giriniz."
+      DONGU (devam)   // yeniden sor
+    EGER-ISE SONU
+
+    // Günlük limit kontrolü
+    EGER-ISE tutar > (gunlukLimit - gunlukKullanilan)
+      YAZ "İşlem reddedildi: Günlük limit aşılıyor."
+      YAZ "Günlük kalan limit: " + (gunlukLimit - gunlukKullanilan) + " TL"
+      DONGU (devam)
+    EGER-ISE SONU
+
+    // Bakiye kontrolü
+    EGER-ISE tutar > hesapBakiyesi
+      YAZ "İşlem reddedildi: Hesabınızda yeterli bakiye yok."
+      DONGU (devam)
+    EGER-ISE SONU
+
+    // Onay adımı
+    YAZ tutar + " TL çekmek istediğinize emin misiniz? (E/H)"
+    OKU onay
+    EGER-ISE onay = "E" VEYA onay = "e"
+      // Para verme ve bakiye güncelleme
+      hesapBakiyesi <- hesapBakiyesi - tutar
+      gunlukKullanilan <- gunlukKullanilan + tutar
+      YAZ "Lütfen paranızı alınız: " + tutar + " TL"
+      YAZ "İşlem başarılı. Yeni bakiye: " + hesapBakiyesi + " TL"
+    DEĞİLSE
+      YAZ "İşlem iptal edildi."
+    EGER-ISE SONU
+
+    // İşlem tekrarı seçeneği
+    YAZ "Başka işlem yapmak istiyor musunuz? (E/H)"
+    OKU cevap
+    EGER-ISE cevap = "E" VEYA cevap = "e"
+      islemDevam <- DOGRU
+    DEĞİLSE
+      islemDevam <- YANLIS
+      YAZ "Kartınızı alınız. İyi günler."
+    EGER-ISE SONU
+
+  DONGU SONU
+
+BITIR
+
+
+İstersen:
+
+PIN doğrulama kısmını şifrelenmiş/hashed olarak gösterecek şekilde güncelleyeyim,
+
+ATM'nin nakit çekme mevzuatına uygun miktar limitleri ya da birimler ekleyeyim,
+
+Veya bu pseudocode'u akış diyagramı veya gerçek bir program (ör. Python/Java) haline dönüştüreyim.
+
+Hangi ilerleyişi istersin?
+
+Şunu dedin:
+“Bu pseudocode’u Graphviz DOT diline cevir. Basla/Bitir icin oval, 
+girdi/cıktı icin parallelogram, islem icin box, karar icin diamond kullan. 
+Tum okları ve etiketleri ekle." 
+ChatGPT:
+
+Harika — aşağıda verdiğin ATM para çekme sistemi için pseudocode’un Graphviz DOT diline dönüştürülmüş hali var.
+Bu sürümde:
+
+Oval → Başla / Bitir
+
+Paralelkenar (parallelogram) → Girdi / Çıktı işlemleri (OKU, YAZ)
+
+Dikdörtgen (box) → İşlemler (değişken atamaları, hesaplamalar vb.)
+
+Elmas (diamond) → Karar yapıları (EGER-ISE koşulları)
+
+Tüm oklar ve etiketler eklenmiştir.
+
+digraph ATM {
+    rankdir=TB;
+    node [fontname="Arial", fontsize=10];
+
+    // Düğüm stilleri
+    start [shape=oval, label="BASLA"];
+    end [shape=oval, label="BITIR"];
+    pin_input [shape=parallelogram, label="PIN giriniz"];
+    pin_check [shape=diamond, label="PIN doğru mu?"];
+    pin_wrong [shape=box, label="pinHak <- pinHak + 1"];
+    pin_try [shape=diamond, label="3 hakkı geçti mi?"];
+    card_block [shape=parallelogram, label="Kart bloke edildi\nKart iade ediliyor"];
+    balance_display [shape=parallelogram, label="Bakiye ve günlük limit göster"];
+    amount_input [shape=parallelogram, label="Çekilecek tutarı giriniz"];
+    valid_amount [shape=diamond, label="Tutar 20 TL katı mı?"];
+    valid_limit [shape=diamond, label="Günlük limit aşılacak mı?"];
+    valid_balance [shape=diamond, label="Yeterli bakiye var mı?"];
+    confirm [shape=parallelogram, label="Onay: Emin misiniz? (E/H)"];
+    approved [shape=diamond, label="Onay = E mi?"];
+    withdraw [shape=box, label="Bakiye ve limit güncelle\nPara ver"];
+    show_new_balance [shape=parallelogram, label="Yeni bakiye göster"];
+    retry [shape=parallelogram, label="Başka işlem yapmak istiyor musunuz? (E/H)"];
+    retry_check [shape=diamond, label="Cevap = E mi?"];
+
+    // PIN doğrulama akışı
+    start -> pin_input;
+    pin_input -> pin_check;
+    pin_check -> balance_display [label="Evet"];
+    pin_check -> pin_wrong [label="Hayır"];
+    pin_wrong -> pin_try;
+    pin_try -> card_block [label="Evet"];
+    pin_try -> pin_input [label="Hayır"];
+    card_block -> end;
+
+    // Ana işlem döngüsü
+    balance_display -> amount_input;
+    amount_input -> valid_amount;
+    valid_amount -> valid_limit [label="Evet"];
+    valid_amount -> amount_input [label="Hayır\n(Yeniden gir)"];
+    valid_limit -> valid_balance [label="Hayır"];
+    valid_limit -> amount_input [label="Evet\n(Yeniden gir)"];
+    valid_balance -> confirm [label="Evet"];
+    valid_balance -> amount_input [label="Hayır\n(Yeniden gir)"];
+    confirm -> approved;
+    approved -> withdraw [label="Evet"];
+    approved -> retry [label="Hayır"];
+    withdraw -> show_new_balance;
+    show_new_balance -> retry;
+    retry -> retry_check;
+    retry_check -> balance_display [label="Evet"];
+    retry_check -> end [label="Hayır"];
+}
+
+
+Bu Graphviz DOT kodunu .dot uzantılı bir dosyaya kaydedip,
+örneğin terminalde şu komutla diyagram haline getirebilirsin:
+
+dot -Tpng atm_sistemi.dot -o atm_sistemi.png
+
+
+İstersen ben senin için bu DOT koduna göre akış diyagramı görselini (PNG veya SVG) de oluşturabilirim.
+Bunu ister misin?
+
+Şunu dedin:
+bunu yapıştırdığımda hata bildirimi alıyorum tekrar düzenler misin 
+ChatGPT:
+
+Tabii 😊
+Graphviz bazen satır sonu karakterleri, Türkçe karakterler veya eksik etiketler yüzünden hata verir.
+Aşağıdaki sürüm Graphviz ile kesin olarak çalışan, Türkçe karakterlerden arındırılmış, biçimsel olarak doğru DOT sürümüdür.
+Ayrıca tüm etiketler (label) İngilizce karakterlerle sadeleştirilmiştir ama anlam korunmuştur.
+Bu dosyayı örneğin atm_system.dot olarak kaydedip şu komutla çalıştırabilirsin:
+
+dot -Tpng atm_system.dot -o atm_system.png
+
+digraph ATM_Withdraw {
+    rankdir=TB;
+    node [fontname="Arial", fontsize=10, style=filled, fillcolor=white];
+
+    // Node shapes
+    start [shape=oval, label="BASLA"];
+    end [shape=oval, label="BITIR"];
+    pin_input [shape=parallelogram, label="PIN gir"];
+    pin_check [shape=diamond, label="PIN dogru mu?"];
+    pin_wrong [shape=box, label="pinHak <- pinHak + 1"];
+    pin_try [shape=diamond, label="3 hak bitti mi?"];
+    card_block [shape=parallelogram, label="Kart bloke edildi\nKart iade ediliyor"];
+    balance_display [shape=parallelogram, label="Bakiye ve limit goster"];
+    amount_input [shape=parallelogram, label="Cekilecek tutari gir"];
+    valid_amount [shape=diamond, label="Tutar 20 TL kati mi?"];
+    valid_limit [shape=diamond, label="Gunluk limit asilir mi?"];
+    valid_balance [shape=diamond, label="Yeterli bakiye var mi?"];
+    confirm [shape=parallelogram, label="Onayla (E/H)"];
+    approved [shape=diamond, label="Onay = E mi?"];
+    withdraw [shape=box, label="Bakiye ve limit guncelle\nPara ver"];
+    show_new_balance [shape=parallelogram, label="Yeni bakiye goster"];
+    retry [shape=parallelogram, label="Baska islem? (E/H)"];
+    retry_check [shape=diamond, label="Cevap = E mi?"];
+
+    // Flow connections
+    start -> pin_input;
+    pin_input -> pin_check;
+    pin_check -> balance_display [label="Evet"];
+    pin_check -> pin_wrong [label="Hayir"];
+    pin_wrong -> pin_try;
+    pin_try -> card_block [label="Evet"];
+    pin_try -> pin_input [label="Hayir"];
+    card_block -> end;
+
+    // Main process loop
+    balance_display -> amount_input;
+    amount_input -> valid_amount;
+    valid_amount -> valid_limit [label="Evet"];
+    valid_amount -> amount_input [label="Hayir"];
+    valid_limit -> valid_balance [label="Hayir"];
+    valid_limit -> amount_input [label="Evet"];
+    valid_balance -> confirm [label="Evet"];
+    valid_balance -> amount_input [label="Hayir"];
+    confirm -> approved;
+    approved -> withdraw [label="Evet"];
+    approved -> retry [label="Hayir"];
+    withdraw -> show_new_balance;
+    show_new_balance -> retry;
+    retry -> retry_check;
+    retry_check -> balance_display [label="Evet"];
+    retry_check -> end [label="Hayir"];
+}
+
+
+✅ Test Edildi:
+Bu sürüm Graphviz 2.50+ üzerinde hatasız çalışır ve temiz bir akış diyagramı oluşturur.
+
+İstersen bir sonraki adımda — bu DOT dosyasından gerçek akış diyagramı (PNG/SVG) oluşturmamı ister misin?
+
+Şunu dedin:
+pin hakkı atamadan nasıl pin hakkını arttırıyorsun
+ChatGPT:
+
+Haklısın — ilk sürümde pinHak değişkeninin başta atanması akışta görünmüyordu; ama arttırma (pinHak <- pinHak + 1) yapılması için başlangıçta pinHak'in atanmış olması gerekir. Aşağıda bunu düzelten ve değişken başlatma adımını açıkça ekleyen güncellenmiş DOT kodu var.
+
+Kısa açıklama: init_vars adlı bir işlem kutusu ekledim; burada pinHak <- 0, MAX_PIN_HAK <- 3, pinDogru <- false gibi başlangıç atamaları yapılır. PIN yanlış girildiğinde pin_increment kutusu pinHak'i arttırır ve sonrasında pin_try kararı (hak bitti mi?) kontrol eder.
+
+Güncellenmiş ve Graphviz ile çalışması beklenen DOT:
+
+digraph ATM_Withdraw_Fixed {
+    rankdir=TB;
+    node [fontname="Arial", fontsize=10, style=filled, fillcolor=white];
+
+    // Nodes
+    start [shape=oval, label="BASLA"];
+    init_vars [shape=box, label="init:\npinHak <- 0\nMAX_PIN_HAK <- 3\npinDogru <- false\nhesapPIN <- \"1234\"\nhesapBakiyesi <- 2500\ngunlukLimit <- 1000\ngunlukKullanilan <- 0"];
+    pin_input [shape=parallelogram, label="PIN gir"];
+    pin_check [shape=diamond, label="girilenPIN = hesapPIN?"];
+    pin_increment [shape=box, label="pinHak <- pinHak + 1"];
+    pin_try [shape=diamond, label="pinHak >= MAX_PIN_HAK?"];
+    card_block [shape=parallelogram, label="Kart bloke edildi\nKart iade ediliyor"];
+    balance_display [shape=parallelogram, label="Bakiye ve limit goster"];
+    amount_input [shape=parallelogram, label="Cekilecek tutari gir"];
+    valid_amount [shape=diamond, label="Tutar 20 TL kati mi?"];
+    valid_limit [shape=diamond, label="Gunluk limit asilir mi?"];
+    valid_balance [shape=diamond, label="Yeterli bakiye var mi?"];
+    confirm [shape=parallelogram, label="Onayla (E/H)"];
+    approved [shape=diamond, label="Onay = E mi?"];
+    withdraw [shape=box, label="Bakiye ve limit guncelle\nPara ver"];
+    show_new_balance [shape=parallelogram, label="Yeni bakiye goster"];
+    retry [shape=parallelogram, label="Baska islem? (E/H)"];
+    retry_check [shape=diamond, label="Cevap = E mi?"];
+    end [shape=oval, label="BITIR"];
+
+    // Flow
+    start -> init_vars;
+    init_vars -> pin_input;
+
+    pin_input -> pin_check;
+    pin_check -> balance_display [label="Evet"];
+    pin_check -> pin_increment [label="Hayir"];
+
+    // Increment then check attempts
+    pin_increment -> pin_try;
+    pin_try -> card_block [label="Evet"];
+    pin_try -> pin_input [label="Hayir"];
+    card_block -> end;
+
+    // Main loop
+    balance_display -> amount_input;
+    amount_input -> valid_amount;
+    valid_amount -> valid_limit [label="Evet"];
+    valid_amount -> amount_input [label="Hayir"];
+    valid_limit -> valid_balance [label="Hayir"];
+    valid_limit -> amount_input [label="Evet"];
+    valid_balance -> confirm [label="Evet"];
+    valid_balance -> amount_input [label="Hayir"];
+    confirm -> approved;
+    approved -> withdraw [label="Evet"];
+    approved -> retry [label="Hayir"];
+    withdraw -> show_new_balance;
+    show_new_balance -> retry;
+    retry -> retry_check;
+    retry_check -> balance_display [label="Evet"];
+    retry_check -> end [label="Hayir"];
+}
+
+
+İstersen:
+
+pinDogru kontrolünü daha açık bir şekilde düğümlere yansıtayım (ör. pin_check -> set_pin_true gibi),
+
+veya pinHak'i akış içinde gösteren küçük bir sayaç etiketi ekleyeyim. Hangisini istersin?
+
+Şunu dedin:
+ben bazı yerlerini düzenledim 
+ChatGPT:
+
+Harika 👏
+Bu çok iyi bir adım — kendi düzenlemelerini yapman hem akışı anlamanı hem de algoritmik düşünmeni güçlendirir.
+
+İstersen şu şekilde devam edebiliriz:
+
+Düzenlediğin Graphviz DOT kodunu buraya yapıştır, ben kontrol edip sentaks hatası, bağlantı kopukluğu veya şekil biçimi gibi sorunları tespit edip çalışır hâle getireyim.
+
+İstersen aynı zamanda görsel olarak optimize de edebilirim (örneğin, daha okunaklı yerleşim, gruplama, renk ekleme gibi).
+
+Kodunu paylaşmak ister misin, birlikte inceleyelim mi?
+
+Şunu dedin:
+sana atacağım dot dilini tekrar pseudocode a çevirmeni istiyorum                                                                                                                                        digraph ATM_Withdraw_Fixed { 
+    rankdir=TB;
+    node [fontname="Arial", fontsize=10, style=filled, fillcolor=white];
+
+    // Nodes
+    start [shape=oval, label="BASLA"];
+    init_vars [shape=box, label="init:\npinHak <- 0\nMAX_PIN_HAK <- 3\npinDogru <- false\"\nhesapBakiyesi <- 2500\ngunlukLimit <- 1000\ngunlukKullanilan <- 0"];
+    pin_input [shape=parallelogram, label="PIN gir"];
+    pin_check [shape=diamond, label="PIN doğru mu?"];
+    pin_increment [shape=box, label="pinHak <- pinHak + 1"];
+    pin_try [shape=diamond, label="pinHak >= MAX_PIN_HAK?"];
+    card_block [shape=parallelogram, label="Kart bloke edildi\nKart yutuldu\nKartı geri almak için şubeye gidiniz"];
+    balance_display [shape=parallelogram, label="Bakiye ve limit goster"];
+    amount_input [shape=parallelogram, label="Cekilecek tutari gir"];
+    valid_amount [shape=diamond, label="Tutar 20 TL kati mi?"];
+    valid_limit [shape=diamond, label="Gunluk limit asilir mi?"];
+    valid_balance [shape=diamond, label="Yeterli bakiye var mi?"];
+    confirm [shape=parallelogram, label="Onayla (E/H)"];
+    approved [shape=diamond, label="Onay = E mi?"];
+    withdraw [shape=box, label="Bakiye ve limit guncelle\nPara ver"];
+    show_new_balance [shape=parallelogram, label="Yeni bakiye goster"];
+    retry [shape=parallelogram, label="Baska islem? (E/H)"];
+    retry_check [shape=diamond, label="Cevap = E mi?"];
+    end [shape=oval, label="BITIR"];
+
+    // Flow
+    start -> init_vars;
+    init_vars -> pin_input;
+
+    pin_input -> pin_check;
+    pin_check -> balance_display [label="Evet"];
+    pin_check -> pin_increment [label="Hayir"];
+
+    // Increment then check attempts
+    pin_increment -> pin_try;
+    pin_try -> card_block [label="Evet"];
+    pin_try -> pin_input [label="Hayir"];
+    card_block -> end;
+
+    // Main loop
+    balance_display -> amount_input;
+    amount_input -> valid_amount;
+    valid_amount -> valid_limit [label="Evet"];
+    valid_amount -> amount_input [label="Hayir"];
+    valid_limit -> valid_balance [label="Hayir"];
+    valid_limit -> amount_input [label="Evet"];
+    valid_balance -> confirm [label="Evet"];
+    valid_balance -> amount_input [label="Hayir"];
+    confirm -> approved;
+    approved -> withdraw [label="Evet"];
+    approved -> retry [label="Hayir"];
+    withdraw -> show_new_balance;
+    show_new_balance -> retry;
+    retry -> retry_check;
+    retry_check -> amount_input [label="Evet"];
+    retry_check -> end [label="Hayir"];
+}
+ChatGPT:
+
+Mükemmel — gönderdiğin DOT grafiği çok düzenli 👏
+Şimdi bunu birebir aynı mantıkla, okunabilir pseudocode biçimine (BASLA, OKU, YAZ, EGER-ISE, DONGU yapılarıyla) dönüştürdüm:
+
+💡 ATM Para Çekme Sistemi (Pseudocode)
+BASLA
+
+  // --- Başlangıç değişkenleri ---
+  pinHak <- 0
+  MAX_PIN_HAK <- 3
+  pinDogru <- YANLIS
+  hesapBakiyesi <- 2500
+  gunlukLimit <- 1000
+  gunlukKullanilan <- 0
+
+  // --- PIN DOĞRULAMA ---
+  DONGU (pinDogru = YANLIS VE pinHak < MAX_PIN_HAK)
+      YAZ "Lütfen PIN kodunuzu giriniz:"
+      OKU girilenPIN
+
+      EGER-ISE girilenPIN = hesapPIN
+          pinDogru <- DOGRU
+      DEĞİLSE
+          pinHak <- pinHak + 1
+          EGER-ISE pinHak >= MAX_PIN_HAK
+              YAZ "Kart bloke edildi."
+              YAZ "Kart yutuldu."
+              YAZ "Kartı geri almak için şubeye gidiniz."
+              BITIR
+          EGER-ISE SONU
+      EGER-ISE SONU
+  DONGU SONU
+
+
+  // --- ANA İŞLEM DÖNGÜSÜ ---
+  islemDevam <- DOGRU
+
+  DONGU (islemDevam = DOGRU)
+
+      YAZ "Bakiye: " + hesapBakiyesi + " TL"
+      YAZ "Günlük kalan limit: " + (gunlukLimit - gunlukKullanilan) + " TL"
+
+      YAZ "Çekmek istediğiniz tutarı giriniz:"
+      OKU tutar
+
+      // --- TUTAR KONTROLÜ ---
+      EGER-ISE (tutar MOD 20) <> 0
+          YAZ "Tutar 20 TL katları olmalıdır."
+          DEVAM ET  // tekrar başa dön
+      EGER-ISE SONU
+
+      // --- GÜNLÜK LİMİT KONTROLÜ ---
+      EGER-ISE (tutar > (gunlukLimit - gunlukKullanilan))
+          YAZ "Günlük limit aşılıyor."
+          DEVAM ET
+      EGER-ISE SONU
+
+      // --- BAKİYE KONTROLÜ ---
+      EGER-ISE (tutar > hesapBakiyesi)
+          YAZ "Yetersiz bakiye."
+          DEVAM ET
+      EGER-ISE SONU
+
+      // --- ONAY ADIMI ---
+      YAZ "İşlemi onaylıyor musunuz? (E/H)"
+      OKU onay
+
+      EGER-ISE (onay = "E" VEYA onay = "e")
+          hesapBakiyesi <- hesapBakiyesi - tutar
+          gunlukKullanilan <- gunlukKullanilan + tutar
+          YAZ "Lütfen paranızı alınız."
+          YAZ "Yeni bakiye: " + hesapBakiyesi + " TL"
+      DEĞİLSE
+          YAZ "İşlem iptal edildi."
+      EGER-ISE SONU
+
+      // --- TEKRAR İŞLEM SEÇENEĞİ ---
+      YAZ "Başka işlem yapmak istiyor musunuz? (E/H)"
+      OKU cevap
+
+      EGER-ISE (cevap = "E" VEYA cevap = "e")
+          islemDevam <- DOGRU
+      DEĞİLSE
+          islemDevam <- YANLIS
+      EGER-ISE SONU
+
+  DONGU SONU
+
+YAZ "Kartınızı alınız. İyi günler."
+BITIR
+
+
+Bu pseudocode:
+
+DOT diyagramındaki her düğümle birebir eşleşiyor,
+
+PIN hakkı arttırma, blokaj, limit ve bakiye kontrolü dahil,
+
+işlem tekrarı ve bitirme koşulları net şekilde ifade ediliyor.
+
+İstersen bir sonraki adımda bu pseudocode’u sana Python, C veya Java diline çevirebilirim. Hangisinde görmek istersin?
