@@ -1,0 +1,67 @@
+digraph Hastane_Islem_Sistemi {
+    rankdir=TB;
+    fontname="Arial";
+    node [fontname="Arial", fontsize=11];
+
+    // --- Düğüm tanımları ---
+    basla [shape=oval, label="BAŞLA"];
+    deneme_baslat [shape=rectangle, label="deneme_sayısı ← 0"];
+    giris [shape=parallelogram, label="Kullanıcı kimlik ve şifre girişi"];
+    kontrol_giris [shape=diamond, label="Giriş bilgileri doğru mu?"];
+    deneme_arttir [shape=rectangle, label="deneme_sayısı ← deneme_sayısı + 1"];
+    kontrol_deneme [shape=diamond, label="deneme_sayısı < 3 mü?"];
+    bloke [shape=rectangle, label="Şifrenizi birçok kez hatalı girdiniz.\n3 dk sonra tekrar deneyiniz."];
+    
+    menu [shape=diamond, label="Menü seçimi:\n1- Randevu\n2- Tahlil"];
+    
+    // --- Randevu süreci ---
+    poliklinik [shape=rectangle, label="Poliklinik seçimi"];
+    doktor [shape=rectangle, label="Doktor seçimi"];
+    saat [shape=rectangle, label="Uygun saatleri görüntüle"];
+    onay [shape=rectangle, label="Randevuyu onayla"];
+    sms [shape=rectangle, label="SMS gönder"];
+    
+    // --- Tahlil süreci ---
+    tahlil_kontrol [shape=diamond, label="Tahlil var mı?"];
+    sonuc_kontrol [shape=diamond, label="Sonuç hazır mı?"];
+    goruntule [shape=rectangle, label="Sonucu görüntüle"];
+    pdf [shape=rectangle, label="PDF indir"];
+    bekle [shape=rectangle, label="Sonuç henüz hazır değil mesajı"];
+    tahlil_yok [shape=rectangle, label="Tahlil bulunamadı mesajı"];
+    
+    bitir [shape=oval, label="BİTİR"];
+
+    // --- Akış bağlantıları ---
+    basla -> deneme_baslat;
+    deneme_baslat -> giris;
+    giris -> kontrol_giris;
+
+    kontrol_giris -> menu [label="EVET"];
+    kontrol_giris -> deneme_arttir [label="HAYIR"];
+
+    deneme_arttir -> kontrol_deneme;
+    kontrol_deneme -> giris [label="EVET"];
+    kontrol_deneme -> bloke [label="HAYIR"];
+    bloke -> bitir;
+
+    // Menü seçimi
+    menu -> poliklinik [label="1- Randevu"];
+    menu -> tahlil_kontrol [label="2- Tahlil"];
+
+    // Randevu akışı
+    poliklinik -> doktor;
+    doktor -> saat;
+    saat -> onay;
+    onay -> sms;
+    sms -> bitir;
+
+    // Tahlil akışı
+    tahlil_kontrol -> sonuc_kontrol [label="EVET"];
+    tahlil_kontrol -> tahlil_yok [label="HAYIR"];
+    sonuc_kontrol -> goruntule [label="EVET"];
+    sonuc_kontrol -> bekle [label="HAYIR"];
+    goruntule -> pdf;
+    pdf -> bitir;
+    bekle -> bitir;
+    tahlil_yok -> bitir;
+}
