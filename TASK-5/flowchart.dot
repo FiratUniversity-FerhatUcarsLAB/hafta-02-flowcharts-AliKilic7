@@ -1,0 +1,60 @@
+digraph Akilli_Ev_Guvenlik_Sistemi {
+    rankdir=TB;
+    fontname="Arial";
+    node [fontname="Arial", fontsize=11, shape=rectangle, style=rounded];
+
+    basla [shape=oval, label="BAŞLA"];
+    kullanici_ayar [label="Kullanıcıdan alarm ayarlarını al:\nSes seviyesi (1–10)\nAlarm süresi (önerilen: 30 sn)"];
+    sistem_aktif [label="SistemDurumu ← AKTİF"];
+    dongu [shape=diamond, label="SistemDurumu = AKTİF mi?"];
+    sensor_okuma [label="Sensörleri Oku:\nHareket, Kapı, Pencere, Duman, Gaz"];
+    
+    hareket [shape=diamond, label="Hareket algılandı mı?"];
+    kapi [shape=diamond, label="Kapı izinsiz açıldı mı?"];
+    pencere [shape=diamond, label="Pencere açıldı mı?"];
+    duman [shape=diamond, label="Duman algılandı mı?"];
+    gaz [shape=diamond, label="Gaz kaçağı algılandı mı?"];
+    tehdit_yok [shape=rectangle, label="Tehdit yok\nSistemi izlemeye devam et"];
+    
+    kamera [label="KameraAktifEt()"];
+    alarm [label="AlarmÇal(Ses, Süre)\n// Kullanıcı ayarlarıyla"];
+    
+    bildirim_hareket [label="BildirimGönder:\n'Hareket algılandı! Evde izinsiz giriş olabilir.'"];
+    bildirim_kapi [label="BildirimGönder:\n'Kapı izinsiz açıldı!'"];
+    bildirim_pencere [label="BildirimGönder:\n'Pencere açıldı!'"];
+    bildirim_duman [label="BildirimGönder:\n'Duman algılandı! Yangın riski!'"];
+    bildirim_gaz [label="BildirimGönder:\n'Gaz kaçağı tespit edildi! Hemen kontrol edin!'"];
+    
+    bekle [label="BEKLE(5 saniye)"];
+    bitir [shape=oval, label="BİTİR"];
+
+    // --- Akış bağlantıları ---
+    basla -> kullanici_ayar -> sistem_aktif -> dongu;
+    dongu -> sensor_okuma [label="EVET"];
+    dongu -> bitir [label="HAYIR"];
+
+    sensor_okuma -> hareket;
+    hareket -> kamera [label="EVET"];
+    hareket -> kapi [label="HAYIR"];
+
+    kamera -> alarm;
+    alarm -> bildirim_hareket -> bekle -> dongu;
+
+    kapi -> alarm [label="EVET"];
+    kapi -> pencere [label="HAYIR"];
+    alarm -> bildirim_kapi;
+
+    pencere -> alarm [label="EVET"];
+    pencere -> duman [label="HAYIR"];
+    alarm -> bildirim_pencere;
+
+    duman -> alarm [label="EVET"];
+    duman -> gaz [label="HAYIR"];
+    alarm -> bildirim_duman;
+
+    gaz -> alarm [label="EVET"];
+    gaz -> tehdit_yok [label="HAYIR"];
+    alarm -> bildirim_gaz;
+
+    tehdit_yok -> bekle -> dongu;
+}
